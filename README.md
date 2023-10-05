@@ -1,4 +1,4 @@
 # LACE
-Code for ICONIP 2023 paper "Document-Level Relation Extraction with Relation Correlation Enhancement".
+Code for International Conference on Neural Information Processing 2023 paper "Document-Level Relation Extraction with Relation Correlation Enhancement".
 
 Under construction, coming soon.
