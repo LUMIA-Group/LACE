@@ -11,7 +11,7 @@ import pickle
 from gat import GAT
 import dgl
 
-class DocREModel(nn.Module):
+class LACEModel(nn.Module):
 
     def __init__(self, config, model, emb_size=768, block_size=64, num_labels=-1, threshold=0.85):
         super().__init__()
