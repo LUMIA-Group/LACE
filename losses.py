@@ -7,7 +7,7 @@ class MATLoss(nn.Module):
         super().__init__()
         self.celoss = nn.CrossEntropyLoss()
 
-    def forward(self, logits, labels):
+    def forward(self, logits, labels, alpha=0.4):
         # TH label
         th_label = torch.zeros_like(labels, dtype=torch.float).to(labels)
         th_label[:, 0] = 1.0
@@ -31,7 +31,7 @@ class MATLoss(nn.Module):
         loss1 = -loss_pos_all / count
         logit2 = logits - (1 - n_mask) * 1e30
         loss2 = -(F.log_softmax(logit2, dim=-1) * th_label).sum(1)
-        loss = loss1 + loss2
+        loss = alpha * loss1 + (1 - alpha) * loss2
         loss = loss.mean()
         return loss
 
