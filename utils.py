@@ -20,3 +20,4 @@ def collate_fn(batch):
     input_mask = torch.tensor(input_mask, dtype=torch.float)
     output = (input_ids, input_mask, labels, entity_pos, hts)
     return output
+
