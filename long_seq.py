@@ -2,9 +2,7 @@ import torch
 import torch.nn.functional as F
 import numpy as np
 
-
 def process_long_input(model, input_ids, attention_mask, start_tokens, end_tokens):
-    # Split the input to 2 overlapping chunks. Now BERT can encode inputs of which the length are up to 1024.
     n, c = input_ids.size()
     start_tokens = torch.tensor(start_tokens).to(input_ids)
     end_tokens = torch.tensor(end_tokens).to(input_ids)
