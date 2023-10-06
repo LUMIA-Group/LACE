@@ -26,7 +26,7 @@ class DocREModel(nn.Module):
         self.emb_size = emb_size
         self.block_size = block_size
         self.num_labels = num_labels
-        docred_adj = pickle.load(open('DocRED_adj.pkl', 'rb'))
+        docred_adj = pickle.load(open('./meta/DocRED_adj.pkl', 'rb'))
         A = self.gen_dgl_graph(docred_adj)
         A = A.int().to(0)
         self.gat = GAT(g=A,
@@ -42,7 +42,7 @@ class DocREModel(nn.Module):
                        residual=False)
         self.layer_norm = nn.LayerNorm(torch.Size([97]))
         self.docred_label_embedding = pickle.load(
-            open('DocRED_label_embedding.pkl', 'rb'))
+            open('./meta/DocRED_label_embedding.pkl', 'rb'))
         self.linear2 = nn.Linear(97 * 2, 97)
 
     def encode(self, input_ids, attention_mask):
