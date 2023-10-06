@@ -5,14 +5,12 @@ docred_rel2id = json.load(open('meta/rel2id.json', 'r'))
 cdr_rel2id = {'1:NR:2': 0, '1:CID:2': 1}
 gda_rel2id = {'1:NR:2': 0, '1:GDA:2': 1}
 
-
 def chunks(l, n):
     res = []
     for i in range(0, len(l), n):
         assert len(l[i:i + n]) == n
         res += [l[i:i + n]]
     return res
-
 
 def read_docred(file_in, tokenizer, max_seq_length=1024):
     i_line = 0
@@ -23,11 +21,9 @@ def read_docred(file_in, tokenizer, max_seq_length=1024):
         return None
     with open(file_in, "r") as fh:
         data = json.load(fh)
-
     for sample in tqdm(data, desc="Example"):
         sents = []
         sent_map = []
-
         entities = sample['vertexSet']
         entity_start, entity_end = [], []
         for entity in entities:
@@ -48,7 +44,6 @@ def read_docred(file_in, tokenizer, max_seq_length=1024):
                 sents.extend(tokens_wordpiece)
             new_map[i_t + 1] = len(sents)
             sent_map.append(new_map)
-
         train_triple = {}
         if "labels" in sample:
             for label in sample['labels']:
@@ -60,7 +55,6 @@ def read_docred(file_in, tokenizer, max_seq_length=1024):
                 else:
                     train_triple[(label['h'], label['t'])].append(
                         {'relation': r, 'evidence': evidence})
-
         entity_pos = []
         for e in entities:
             entity_pos.append([])
@@ -68,7 +62,6 @@ def read_docred(file_in, tokenizer, max_seq_length=1024):
                 start = sent_map[m["sent_id"]][m["pos"][0]]
                 end = sent_map[m["sent_id"]][m["pos"][1]]
                 entity_pos[-1].append((start, end,))
-
         relations, hts = [], []
         for h, t in train_triple.keys():
             relation = [0] * len(docred_rel2id)
@@ -78,7 +71,6 @@ def read_docred(file_in, tokenizer, max_seq_length=1024):
             relations.append(relation)
             hts.append([h, t])
             pos_samples += 1
-
         for h in range(len(entities)):
             for t in range(len(entities)):
                 if h != t and [h, t] not in hts:
@@ -86,13 +78,10 @@ def read_docred(file_in, tokenizer, max_seq_length=1024):
                     relations.append(relation)
                     hts.append([h, t])
                     neg_samples += 1
-
         assert len(relations) == len(entities) * (len(entities) - 1)
-
         sents = sents[:max_seq_length - 2]
         input_ids = tokenizer.convert_tokens_to_ids(sents)
         input_ids = tokenizer.build_inputs_with_special_tokens(input_ids)
-
         i_line += 1
         feature = {'input_ids': input_ids,
                    'entity_pos': entity_pos,
@@ -101,12 +90,7 @@ def read_docred(file_in, tokenizer, max_seq_length=1024):
                    'title': sample['title'],
                    }
         features.append(feature)
-
-    print("# of documents {}.".format(i_line))
-    print("# of positive examples {}.".format(pos_samples))
-    print("# of negative examples {}.".format(neg_samples))
     return features
-
 
 def read_cdr(file_in, tokenizer, max_seq_length=1024):
     pmids = set()
@@ -117,15 +101,12 @@ def read_cdr(file_in, tokenizer, max_seq_length=1024):
         for i_l, line in enumerate(tqdm(lines)):
             line = line.rstrip().split('\t')
             pmid = line[0]
-
             if pmid not in pmids:
                 pmids.add(pmid)
                 text = line[1]
                 prs = chunks(line[2:], 17)
-
                 ent2idx = {}
                 train_triples = {}
-
                 entity_pos = set()
                 for p in prs:
                     es = list(map(int, p[8].split(':')))
@@ -133,13 +114,11 @@ def read_cdr(file_in, tokenizer, max_seq_length=1024):
                     tpy = p[7]
                     for start, end in zip(es, ed):
                         entity_pos.add((start, end, tpy))
-
                     es = list(map(int, p[14].split(':')))
                     ed = list(map(int, p[15].split(':')))
                     tpy = p[13]
                     for start, end in zip(es, ed):
                         entity_pos.add((start, end, tpy))
-
                 sents = [t.split(' ') for t in text.split('|')]
                 new_sents = []
                 sent_map = {}
@@ -157,9 +136,7 @@ def read_cdr(file_in, tokenizer, max_seq_length=1024):
                         i_t += 1
                     sent_map[i_t] = len(new_sents)
                 sents = new_sents
-
                 entity_pos = []
-
                 for p in prs:
                     if p[0] == "not_include":
                         continue
@@ -192,7 +169,6 @@ def read_cdr(file_in, tokenizer, max_seq_length=1024):
                         train_triples[(h_id, t_id)] = [{'relation': r}]
                     else:
                         train_triples[(h_id, t_id)].append({'relation': r})
-
                 relations, hts = [], []
                 for h, t in train_triples.keys():
                     relation = [0] * len(cdr_rel2id)
@@ -200,12 +176,10 @@ def read_cdr(file_in, tokenizer, max_seq_length=1024):
                         relation[mention["relation"]] = 1
                     relations.append(relation)
                     hts.append([h, t])
-
             maxlen = max(maxlen, len(sents))
             sents = sents[:max_seq_length - 2]
             input_ids = tokenizer.convert_tokens_to_ids(sents)
             input_ids = tokenizer.build_inputs_with_special_tokens(input_ids)
-
             if len(hts) > 0:
                 feature = {'input_ids': input_ids,
                            'entity_pos': entity_pos,
@@ -214,10 +188,7 @@ def read_cdr(file_in, tokenizer, max_seq_length=1024):
                            'title': pmid,
                            }
                 features.append(feature)
-    print("Number of documents: {}.".format(len(features)))
-    print("Max document length: {}.".format(maxlen))
     return features
-
 
 def read_gda(file_in, tokenizer, max_seq_length=1024):
     pmids = set()
@@ -228,15 +199,12 @@ def read_gda(file_in, tokenizer, max_seq_length=1024):
         for i_l, line in enumerate(tqdm(lines)):
             line = line.rstrip().split('\t')
             pmid = line[0]
-
             if pmid not in pmids:
                 pmids.add(pmid)
                 text = line[1]
                 prs = chunks(line[2:], 17)
-
                 ent2idx = {}
                 train_triples = {}
-
                 entity_pos = set()
                 for p in prs:
                     es = list(map(int, p[8].split(':')))
@@ -250,7 +218,6 @@ def read_gda(file_in, tokenizer, max_seq_length=1024):
                     tpy = p[13]
                     for start, end in zip(es, ed):
                         entity_pos.add((start, end, tpy))
-
                 sents = [t.split(' ') for t in text.split('|')]
                 new_sents = []
                 sent_map = {}
@@ -268,9 +235,7 @@ def read_gda(file_in, tokenizer, max_seq_length=1024):
                         i_t += 1
                     sent_map[i_t] = len(new_sents)
                 sents = new_sents
-
                 entity_pos = []
-
                 for p in prs:
                     if p[0] == "not_include":
                         continue
@@ -303,7 +268,6 @@ def read_gda(file_in, tokenizer, max_seq_length=1024):
                         train_triples[(h_id, t_id)] = [{'relation': r}]
                     else:
                         train_triples[(h_id, t_id)].append({'relation': r})
-
                 relations, hts = [], []
                 for h, t in train_triples.keys():
                     relation = [0] * len(gda_rel2id)
@@ -311,12 +275,10 @@ def read_gda(file_in, tokenizer, max_seq_length=1024):
                         relation[mention["relation"]] = 1
                     relations.append(relation)
                     hts.append([h, t])
-
             maxlen = max(maxlen, len(sents))
             sents = sents[:max_seq_length - 2]
             input_ids = tokenizer.convert_tokens_to_ids(sents)
             input_ids = tokenizer.build_inputs_with_special_tokens(input_ids)
-
             if len(hts) > 0:
                 feature = {'input_ids': input_ids,
                            'entity_pos': entity_pos,
@@ -325,6 +287,4 @@ def read_gda(file_in, tokenizer, max_seq_length=1024):
                            'title': pmid,
                            }
                 features.append(feature)
-    print("Number of documents: {}.".format(len(features)))
-    print("Max document length: {}.".format(maxlen))
     return features
