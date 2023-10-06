@@ -13,5 +13,5 @@ python -u train.py --data_dir ./dataset/docred \
 --warmup_ratio 0.06 \
 --num_train_epochs 70.0 \
 --seed 10 \
---save_path model.pkl \
+--save_path lacemodel.pkl \
 --num_class 97
