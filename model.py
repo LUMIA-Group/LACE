@@ -26,9 +26,6 @@ class DocREModel(nn.Module):
         self.emb_size = emb_size
         self.block_size = block_size
         self.num_labels = num_labels
-        self.feature_fusion_linear = nn.Linear(768 * 2, 768)
-        self.feature_fusion_lstm = nn.LSTM(input_size=768 * 2, hidden_size=768, bidirectional=True, batch_first=True,
-                                           num_layers=2, dropout=0.2)
         docred_adj = pickle.load(open('DocRED_adj.pkl', 'rb'))
         A = self.gen_dgl_graph(docred_adj)
         A = A.int().to(0)
@@ -46,13 +43,7 @@ class DocREModel(nn.Module):
         self.layer_norm = nn.LayerNorm(torch.Size([97]))
         self.docred_label_embedding = pickle.load(
             open('DocRED_label_embedding.pkl', 'rb'))
-        self.relu = nn.LeakyReLU(0.2)
-        self.linear1 = nn.Linear(97, 97)
         self.linear2 = nn.Linear(97 * 2, 97)
-        self.hs_lstm = nn.LSTM(input_size=768 + 97, hidden_size=768, num_layers=1, batch_first=True, dropout=0.2)
-        self.ts_lstm = nn.LSTM(input_size=768 + 97, hidden_size=768, num_layers=1, batch_first=True, dropout=0.2)
-        self.hs_linear = nn.Linear(768 + 97, 768)
-        self.ts_linear = nn.Linear(768 + 97, 768)
 
     def encode(self, input_ids, attention_mask):
         config = self.config
