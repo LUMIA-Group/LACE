@@ -82,7 +82,7 @@ def evaluate(args, model, features, tag="dev"):
         best_f1, _, best_f1_ign, _, re_p, re_r = official_evaluate(ans, args.data_dir)
     else: best_f1, best_f1_ign = 0.0, 0.0
     output = {
-        tag + "_F1": best_f1 * 100, '精确率:': re_p, '召回率:': re_r,
+        tag + "_F1": best_f1 * 100, 'precision:': re_p, 'recall:': re_r,
         tag + "_F1_ign": best_f1_ign * 100,
     }
     return best_f1, output
