@@ -120,7 +120,7 @@ class DocREModel(nn.Module):
         # Note that for GloVe embedding, leverage the following similar operations:
         # tok_emb = torch.cat([word_emb, ner_embs])
         # word_emb = pack_padded_sequence(tok_emb)
-        # word_emb, (hidden, _) = self.lstm(word_emb)
+        # packed_output, (hidden, _) = self.lstm(word_emb)
         sequence_output, attention = self.encode(input_ids, attention_mask)
         hs, rs, ts = self.get_hrt(sequence_output, attention, entity_pos, hts)
         label_embedding = self.gat(self.docred_label_embedding)
