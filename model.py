@@ -143,7 +143,7 @@ class DocREModel(nn.Module):
             output = (loss.to(sequence_output),) + output
         return output
 
-    def gen_dgl_graph(self, docred_adj, t=0.05):
+    def gen_dgl_graph(self, docred_adj, t=0.05, p=0.3):
         nums = np.sum(docred_adj, axis=0)
         _nums = nums[:, np.newaxis]
         for i in range(len(_nums)):
@@ -154,7 +154,9 @@ class DocREModel(nn.Module):
         _adj = docred_adj
         _adj[_adj < t] = 0
         _adj[_adj >= t] = 1
-        _adj = _adj * 0.3 / (_adj.sum(0, keepdims=True) + 1e-6)
+        _adj = _adj * p / (_adj.sum(0, keepdims=True) - 1 + 1e-6)
+        row, col = np.diag_indices_from(_adj)
+        _adj[row, col] = 1.0 - p
         start_idx = []
         end_idx = []
         for i in range(97):
