@@ -35,5 +35,10 @@ If you find our work inspiring, please kindly cite the following paper,
 - Under ArXiv moderation, coming soon.
 
 ```bib
-@
+@article{huang2023document,
+  title={Document-Level Relation Extraction with Relation Correlation Enhancement},
+  author={Huang, Yusheng and Lin, Zhouhan},
+  journal={arXiv preprint arXiv:2310.13000},
+  year={2023}
+}
 ```
